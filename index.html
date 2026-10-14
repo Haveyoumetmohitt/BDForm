@@ -218,7 +218,7 @@ const FLOORS=['Basement','Ground','First','Second+'], YN3=['Yes','No','Not sure'
  FRONTAGE=['Hawker encroachment','Parking blocking frontage','None'], PARK=['Easy','Limited','None'],
  DAYS=['Weekday','Weekend'], MODES=['New site','Repeat visit'];
 const TEN_FIELDS=[{k:'name',l:'Shop / business'},{k:'area',l:'Area (sq ft)',t:'num'},{k:'rent',l:'Rent (₹ / month)',t:'num'},{k:'source',l:'Source',t:'sel',opts:['Tenant','Broker','Owner','Estimate']}];
-const SITE_KEYS=['signage','obstruct','waterlog','waterlogNote','generators','gen','directNearby','indirectTypes','competitors','changes','risks','ownStoreKm','facadeW','facadeH','floors','backDoor','bldg','tenants','lastTenant','lastStay','whyLeft','vacant','seatIn','seatOut','outdoorOk','median','uturn','parkTw','parkCar','parkSlots','ductFan','ductFanNote'];
+const SITE_KEYS=['signage','obstruct','waterlog','waterlogNote','generators','gen','directNearby','indirectTypes','competitors','changes','risks','ownStoreKm','facadeW','facadeH','floors','backDoor','bldg','tenants','lastTenant','lastStay','whyLeft','vacant','seatIn','seatOut','outdoorOk','median','uturn','parkTw','parkCar','parkSlots','ductFan','ductFanNote','elecOk','elecExt','waterOk'];
 const VISIT_KEYS=['dayType','footfall','mainFootfall','frontage','safety','visitNotes','photos','driveLink'];
 
 /* ---------- state ---------- */
@@ -229,7 +229,7 @@ function blank(){
     meta:{bd:'',date:today(),time:'',site:'',address:'',location:'',maps:''},dayType:dayOf(today()),photos:[],driveLink:'',
     footfall:{morning:'',lunch:'',evening:'',dinner:''},mainFootfall:[],signage:'',obstruct:[],frontage:[],safety:'',visitNotes:'',
     generators:[],gen:{},directNearby:'',indirectTypes:[],competitors:[{}],changes:'',risks:{has:'',details:''},ownStoreKm:'',
-    waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
+    waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',elecOk:'',elecExt:'',waterOk:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
     seatIn:'',seatOut:'',outdoorOk:'',median:'',uturn:'',parkTw:'',parkCar:'',parkSlots:''};
 }
 let S=blank();
@@ -306,6 +306,9 @@ function render(){
     <div class="sec-head"><span class="sec-letter">E</span><h2>Property and access</h2></div>
     ${q('Is the unit in a residential or commercial building?',chips('bldg',BLDG,false))}
     ${q('Is installation of HVAC, exhaust and fresh air possible? *',chips('ductFan',YN3,false)+fl('Notes / constraints','ductFanNote',{t:'area',ph:'e.g. exhaust route, permissions, landlord approval'}))}
+    ${q('Is electrical capacity of at least 35 kW available? *',chips('elecOk',['Yes','No'],false))}
+    ${q('Can the electrical capacity be extended? *',chips('elecExt',['Yes','No'],false))}
+    ${q('Is water supply of at least 2,000 litres per day available? *',chips('waterOk',['Yes','No'],false))}
     ${q('Facade size (ft) *',`<div class="grid2">${fl('Width','facadeW',{t:'num'})}${fl('Height','facadeH',{t:'num'})}</div>`)}
     ${q('Which floor(s) is the unit on? * <span class="hint">Ground is the minimum we need</span>',chips('floors',FLOORS))}
     ${q('Is back-door delivery possible?',chips('backDoor',YN3,false))}
@@ -343,7 +346,7 @@ function detailHTML(s,vs){
   return `<div class="detail">
     <div><h4>Weekday vs weekend <span class="hint">${vs.length} visit${vs.length===1?'':'s'}, latest of each type</span></h4>${cmp}</div>
     ${media}
-    <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
+    <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Electricity 35 kW+',E(s.elecOk)],['Electricity extendable',E(s.elecExt)],['Water 2,000 L+',E(s.waterOk)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
     ${tens.length?tbl(TEN_FIELDS.map(f=>f.l),tens.map(r=>[E(r.name),E(r.area),fmtINR(r.rent),E(r.source)])):''}</div>
     ${gens}
     <div><h4>Competition</h4>${dl([['Direct competitors nearby',E(s.directNearby)],['Indirect nearby',E(s.indirectTypes)],['Openings / closures',E(s.changes)]])}
@@ -374,7 +377,7 @@ function renderList(){
 }
 
 /* ---------- CSV: one row per visit ---------- */
-const SK=[['Building','bldg'],['Floors','floors'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
+const SK=[['Building','bldg'],['Floors','floors'],['Electricity 35 kW+','elecOk'],['Electricity extendable','elecExt'],['Water 2000 L+','waterOk'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"', j=v=>Array.isArray(v)?v.join(', '):v;
   const C=[['Site',s=>s.meta?.site],['Site ID',s=>s.id],['Address',s=>s.meta?.address],['Site location',s=>s.meta?.location],['Maps pin',s=>s.meta?.maps],
@@ -574,8 +577,7 @@ function cleaned(){
   return c;
 }
 document.getElementById('submitBtn').addEventListener('click',async()=>{
-  const errEl=document.getElementById('formErr'),rep=S.mode==='Repeat visit',miss=[];
-  const ready=!rep||!!S.siteId;
+  const errEl=document.getElementById('formErr'),rep=S.mode==='Repeat visit',miss=[],ready=!rep||!!S.siteId;
   if(!S.meta.bd.trim())miss.push('BD executive');
   if(rep&&!S.siteId)miss.push('site');
   if(!rep&&!S.meta.site.trim())miss.push('site name');
@@ -597,6 +599,9 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
     if(!S.generators.length)miss.push('at least one demand generator');
     if(S.facadeW==='')miss.push('facade width');
     if(!S.floors.length)miss.push('floor');
+    if(!S.elecOk)miss.push('electricity 35 kW');
+    if(!S.elecExt)miss.push('electricity extendable');
+    if(!S.waterOk)miss.push('water supply');
   }
   if(miss.length){if(errEl){errEl.hidden=false;errEl.textContent='Fill in: '+miss.join(', ')+'.';errEl.scrollIntoView({block:'center'});}return;}
   if(errEl)errEl.hidden=true;
