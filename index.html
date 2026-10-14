@@ -218,7 +218,7 @@ const FLOORS=['Basement','Ground','First','Second+'], YN3=['Yes','No','Not sure'
  FRONTAGE=['Hawker encroachment','Parking blocking frontage','None'], PARK=['Easy','Limited','None'],
  DAYS=['Weekday','Weekend'], MODES=['New site','Repeat visit'];
 const TEN_FIELDS=[{k:'name',l:'Shop / business'},{k:'area',l:'Area (sq ft)',t:'num'},{k:'rent',l:'Rent (₹ / month)',t:'num'},{k:'source',l:'Source',t:'sel',opts:['Tenant','Broker','Owner','Estimate']}];
-const SITE_KEYS=['signage','obstruct','waterlog','waterlogNote','generators','gen','directNearby','indirectTypes','competitors','changes','risks','ownStoreKm','facadeW','facadeH','floors','backDoor','bldg','tenants','lastTenant','lastStay','whyLeft','vacant','seatIn','seatOut','outdoorOk','median','uturn','parkTw','parkCar','parkSlots','ductFan','ductFanNote','elecOk','elecExt','waterOk'];
+const SITE_KEYS=['signage','obstruct','waterlog','waterlogNote','generators','gen','directNearby','indirectTypes','competitors','changes','risks','ownStoreKm','facadeW','facadeH','floors','backDoor','bldg','tenants','lastTenant','lastStay','whyLeft','vacant','seatIn','seatOut','outdoorOk','median','uturn','parkTw','parkCar','parkSlots','ductFan','ductFanNote','compCount','elecOk','elecExt','waterOk'];
 const VISIT_KEYS=['dayType','footfall','mainFootfall','frontage','safety','visitNotes','photos','driveLink'];
 
 /* ---------- state ---------- */
@@ -229,7 +229,7 @@ function blank(){
     meta:{bd:'',date:today(),time:'',site:'',address:'',location:'',maps:''},dayType:dayOf(today()),photos:[],driveLink:'',
     footfall:{morning:'',lunch:'',evening:'',dinner:''},mainFootfall:[],signage:'',obstruct:[],frontage:[],safety:'',visitNotes:'',
     generators:[],gen:{},directNearby:'',indirectTypes:[],competitors:[{}],changes:'',risks:{has:'',details:''},ownStoreKm:'',
-    waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',elecOk:'',elecExt:'',waterOk:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
+    waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',compCount:'',elecOk:'',elecExt:'',waterOk:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
     seatIn:'',seatOut:'',outdoorOk:'',median:'',uturn:'',parkTw:'',parkCar:'',parkSlots:''};
 }
 let S=blank();
@@ -290,6 +290,7 @@ function render(){
 
   ${full?`<section class="card" id="sec-c">
     <div class="sec-head"><span class="sec-letter">C</span><h2>Competition</h2></div>
+    <div class="q"><label for="f-compCount">${N()}How many competitors are nearby in total? * <span class="hint">Direct and indirect together. Enter 0 if none.</span></label>${input('compCount',{t:'num'})}</div>
     ${q('Any direct competitors nearby? <span class="hint">Same cuisine or category</span>',chips('directNearby',['Yes','No'],false))}
     ${q('Which indirect competitors are nearby? <span class="hint">Select all</span>',chips('indirectTypes',INDIRECT))}
     ${q('Top competitors <span class="hint">Add each one. Estimates are fine, but pick the source.</span>',entries('competitors',COMP_FIELDS,'Competitor'))}
@@ -349,7 +350,7 @@ function detailHTML(s,vs){
     <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Electricity 35 kW+',E(s.elecOk)],['Electricity extendable',E(s.elecExt)],['Water 2,000 L+',E(s.waterOk)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
     ${tens.length?tbl(TEN_FIELDS.map(f=>f.l),tens.map(r=>[E(r.name),E(r.area),fmtINR(r.rent),E(r.source)])):''}</div>
     ${gens}
-    <div><h4>Competition</h4>${dl([['Direct competitors nearby',E(s.directNearby)],['Indirect nearby',E(s.indirectTypes)],['Openings / closures',E(s.changes)]])}
+    <div><h4>Competition</h4>${dl([['Competitors nearby (total)',E(s.compCount)],['Direct competitors nearby',E(s.directNearby)],['Indirect nearby',E(s.indirectTypes)],['Openings / closures',E(s.changes)]])}
     ${comps.length?tbl(['Name','Type','Dist km','ADS','Monthly','Delivery %','Dine-in %','Source'],comps.map(c=>[E(c.name),E(c.kind),E(c.dist),fmtINR(c.ads),fmtINR(c.monthly),E(c.delivery),E(c.dinein),E(c.source)])):''}</div>
     <div><h4>Risks</h4>${dl([['Upcoming changes',E(s.risks?.has)+(s.risks?.details?' – '+esc(s.risks.details):'')],['Nearest own store',s.ownStoreKm!==''&&s.ownStoreKm!=null?esc(s.ownStoreKm)+' km':'–']])}</div>
   </div>`;
@@ -367,6 +368,7 @@ function renderList(){
     if(vs.some(v=>v.safety==='Poor'))fl.push('Poor evening safety');
     if(s.signage==='Poor')fl.push('Poor signage');
     if(s.directNearby==='Yes')fl.push('Direct competition');
+    if(s.compCount!==''&&s.compCount!=null&&Number(s.compCount)===0)fl.push('No competitors nearby');
     const gens=(s.generators||[]).map(k=>GENERATORS.find(g=>g.k===k)?.l||k);
     return `<div class="sub-card"><button class="open" data-id="${esc(s.id)}" aria-expanded="${openSet.has(s.id)}">
       <span class="t">${esc(s.meta?.site||'Untitled site')}</span>
@@ -377,7 +379,7 @@ function renderList(){
 }
 
 /* ---------- CSV: one row per visit ---------- */
-const SK=[['Building','bldg'],['Floors','floors'],['Electricity 35 kW+','elecOk'],['Electricity extendable','elecExt'],['Water 2000 L+','waterOk'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
+const SK=[['Building','bldg'],['Floors','floors'],['Electricity 35 kW+','elecOk'],['Electricity extendable','elecExt'],['Water 2000 L+','waterOk'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Total competitors nearby','compCount'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"', j=v=>Array.isArray(v)?v.join(', '):v;
   const C=[['Site',s=>s.meta?.site],['Site ID',s=>s.id],['Address',s=>s.meta?.address],['Site location',s=>s.meta?.location],['Maps pin',s=>s.meta?.maps],
@@ -599,6 +601,7 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
     if(!S.generators.length)miss.push('at least one demand generator');
     if(S.facadeW==='')miss.push('facade width');
     if(!S.floors.length)miss.push('floor');
+    if(S.compCount===''||S.compCount==null)miss.push('total competitors nearby');
     if(!S.elecOk)miss.push('electricity 35 kW');
     if(!S.elecExt)miss.push('electricity extendable');
     if(!S.waterOk)miss.push('water supply');
@@ -639,3 +642,4 @@ loadAll();
 </script>
 
 </body></html>
+  
