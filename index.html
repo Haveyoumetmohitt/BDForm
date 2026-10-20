@@ -218,7 +218,7 @@ const FLOORS=['Basement','Ground','First','Second+'], YN3=['Yes','No','Not sure'
  FRONTAGE=['Hawker encroachment','Parking blocking frontage','None'], PARK=['Easy','Limited','None'],
  DAYS=['Weekday','Weekend'], MODES=['New site','Repeat visit'];
 const TEN_FIELDS=[{k:'name',l:'Shop / business'},{k:'area',l:'Area (sq ft)',t:'num'},{k:'rent',l:'Rent (₹ / month)',t:'num'},{k:'source',l:'Source',t:'sel',opts:['Tenant','Broker','Owner','Estimate']}];
-const SITE_KEYS=['signage','obstruct','waterlog','waterlogNote','generators','gen','directNearby','indirectTypes','competitors','changes','risks','ownStoreKm','facadeW','facadeH','floors','backDoor','bldg','tenants','lastTenant','lastStay','whyLeft','vacant','seatIn','seatOut','outdoorOk','median','uturn','parkTw','parkCar','parkSlots','ductFan','ductFanNote','compCount','elecOk','elecExt','waterOk'];
+const SITE_KEYS=['signage','obstruct','waterlog','waterlogNote','generators','gen','directNearby','indirectTypes','competitors','changes','risks','ownStoreKm','facadeW','facadeH','floors','backDoor','bldg','tenants','lastTenant','lastStay','whyLeft','vacant','seatIn','seatOut','outdoorOk','median','uturn','parkTw','parkCar','parkSlots','ductFan','ductFanNote','compCount','elecOk','elecExt','waterOk','rentAsk','deposit','agreeMonths'];
 const VISIT_KEYS=['dayType','footfall','mainFootfall','frontage','safety','visitNotes','photos','driveLink'];
 
 /* ---------- state ---------- */
@@ -229,7 +229,7 @@ function blank(){
     meta:{bd:'',date:today(),time:'',site:'',address:'',location:'',maps:''},dayType:dayOf(today()),photos:[],driveLink:'',
     footfall:{morning:'',lunch:'',evening:'',dinner:''},mainFootfall:[],signage:'',obstruct:[],frontage:[],safety:'',visitNotes:'',
     generators:[],gen:{},directNearby:'',indirectTypes:[],competitors:[{}],changes:'',risks:{has:'',details:''},ownStoreKm:'',
-    waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',compCount:'',elecOk:'',elecExt:'',waterOk:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
+    waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',compCount:'',elecOk:'',elecExt:'',waterOk:'',rentAsk:'',deposit:'',agreeMonths:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
     seatIn:'',seatOut:'',outdoorOk:'',median:'',uturn:'',parkTw:'',parkCar:'',parkSlots:''};
 }
 let S=blank();
@@ -320,6 +320,7 @@ function render(){
     ${q('Is there a median or divider blocking cross traffic?',chips('median',MEDIAN,false)+fl('Nearest U-turn (metres)','uturn',{t:'num'}))}
     ${q('Parking feasibility',`<div class="grid2">${fl('Two-wheeler','parkTw',{t:'sel',opts:PARK})}${fl('Car','parkCar',{t:'sel',opts:PARK})}</div>${fl('Approx. slots near the frontage','parkSlots',{t:'num'})}`)}
     ${q('Unit history',`${fl('Last tenant (business)','lastTenant')}<div class="grid2">${fl('Stayed (months)','lastStay',{t:'num'})}${fl('Vacant for (months)','vacant',{t:'num'})}</div>${fl('Why did they leave?','whyLeft',{t:'area'})}`)}
+    ${q('Rent terms <span class="hint">Optional. What the landlord is asking</span>',`<div class="grid2">${fl('Monthly rent (₹)','rentAsk',{t:'num'})}${fl('Security deposit (₹)','deposit',{t:'num'})}</div>${fl('Agreement period (months)','agreeMonths',{t:'num'})}`)}
     ${q('Nearby tenants\' rent <span class="hint">Capture what you can</span>',entries('tenants',TEN_FIELDS,'Tenant'))}
   </section>`:''}
   <p class="err" id="formErr" hidden></p>`;
@@ -347,7 +348,7 @@ function detailHTML(s,vs){
   return `<div class="detail">
     <div><h4>Weekday vs weekend <span class="hint">${vs.length} visit${vs.length===1?'':'s'}, latest of each type</span></h4>${cmp}</div>
     ${media}
-    <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Electricity 35 kW+',E(s.elecOk)],['Electricity extendable',E(s.elecExt)],['Water 2,000 L+',E(s.waterOk)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
+    <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Electricity 35 kW+',E(s.elecOk)],['Electricity extendable',E(s.elecExt)],['Water 2,000 L+',E(s.waterOk)],['Asking rent / month',s.rentAsk===''||s.rentAsk==null?'–':fmtINR(s.rentAsk)],['Security deposit',s.deposit===''||s.deposit==null?'–':fmtINR(s.deposit)],['Agreement period (months)',E(s.agreeMonths)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
     ${tens.length?tbl(TEN_FIELDS.map(f=>f.l),tens.map(r=>[E(r.name),E(r.area),fmtINR(r.rent),E(r.source)])):''}</div>
     ${gens}
     <div><h4>Competition</h4>${dl([['Competitors nearby (total)',E(s.compCount)],['Direct competitors nearby',E(s.directNearby)],['Indirect nearby',E(s.indirectTypes)],['Openings / closures',E(s.changes)]])}
@@ -379,7 +380,7 @@ function renderList(){
 }
 
 /* ---------- CSV: one row per visit ---------- */
-const SK=[['Building','bldg'],['Floors','floors'],['Electricity 35 kW+','elecOk'],['Electricity extendable','elecExt'],['Water 2000 L+','waterOk'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Total competitors nearby','compCount'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
+const SK=[['Building','bldg'],['Floors','floors'],['Electricity 35 kW+','elecOk'],['Electricity extendable','elecExt'],['Water 2000 L+','waterOk'],['Asking rent per month','rentAsk'],['Security deposit','deposit'],['Agreement period months','agreeMonths'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Total competitors nearby','compCount'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"', j=v=>Array.isArray(v)?v.join(', '):v;
   const C=[['Site',s=>s.meta?.site],['Site ID',s=>s.id],['Address',s=>s.meta?.address],['Site location',s=>s.meta?.location],['Maps pin',s=>s.meta?.maps],
@@ -642,4 +643,3 @@ loadAll();
 </script>
 
 </body></html>
-  
