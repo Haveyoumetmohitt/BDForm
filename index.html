@@ -147,6 +147,10 @@ const GENERATORS = [
     {k:'name', l:'College name'},
     {k:'dist', l:'Distance from site (km)', t:'num'},
     {k:'timings', l:'Campus timings', ph:'8am – 3pm'}]},
+  {k:'schools', l:'Schools', radius:'within 2 km', fields:[
+    {k:'name', l:'School name'},
+    {k:'dist', l:'Distance from site (km)', t:'num'},
+    {k:'timings', l:'School timings', ph:'8am – 2pm'}]},
   {k:'residential', l:'Residential', radius:'within 2 km', fields:[
     {k:'name', l:'Building / society name'},
     {k:'dist', l:'Distance from site (km)', t:'num'},
@@ -168,6 +172,8 @@ const GENERATORS = [
 ];
 const FOOTFALL = ['Low','Medium','High'];
 const MAIN_FOOTFALL = ['Families','Students','Office crowd','Transient'];
+const CITIES = ['Mumbai','Navi Mumbai','Thane','Kalyan-Dombivli','Vasai-Virar','Mira-Bhayandar','Pune','Delhi','Gurugram','Noida','Ghaziabad','Faridabad','Bengaluru','Hyderabad','Chennai','Kolkata','Ahmedabad','Surat','Vadodara','Rajkot','Jaipur','Lucknow','Kanpur','Nagpur','Nashik','Aurangabad','Indore','Bhopal','Chandigarh','Amritsar','Ludhiana','Dehradun','Patna','Ranchi','Bhubaneswar','Guwahati','Visakhapatnam','Vijayawada','Coimbatore','Kochi','Thiruvananthapuram','Mysuru','Goa','Other'];   // edit this list to change the city dropdown. Mumbai region first, then other cities
+const FORMATS = ['Dine-in','Cloud kitchen'];
 const SIGNAGE = ['Visible from both','Only from road','Only from approach direction','Poor'];
 const INDIRECT = ['QSR','Cafes','Cloud kitchens','Canteens'];
 const SOURCES = ['Talked to staff','Counter observation','Delivery-app volume','Broker','Mystery shopping'];
@@ -213,7 +219,7 @@ function entries(listPath, fields, noun){
 
 /* ---------- new schema ---------- */
 const FLOORS=['Basement','Ground','First','Second+'], YN3=['Yes','No','Not sure'],
- BLDG=['Residential tower','Commercial tower','Standalone shopfront','Mall / other'],
+ BLDG=['Residential tower','Commercial tower','Mixed-use tower','Standalone shopfront','Mall / other'],
  MEDIAN=['No median','Blocks cross traffic','Partial gap'], OBSTRUCT=['Trees','Hoardings','Flyover pillars','None'],
  FRONTAGE=['Hawker encroachment','Parking blocking frontage','None'], PARK=['Easy','Limited','None'],
  DAYS=['Weekday','Weekend'], MODES=['New site','Repeat visit'];
@@ -226,7 +232,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const dayOf=d=>{const w=new Date(d+'T00:00').getDay();return(w===0||w===6)?'Weekend':'Weekday'};
 function blank(){
   return {mode:'New site',siteId:'',editSite:false,
-    meta:{bd:'',date:today(),time:'',site:'',address:'',location:'',maps:''},dayType:dayOf(today()),photos:[],driveLink:'',
+    meta:{bd:'',date:today(),time:'',site:'',address:'',location:'',maps:'',city:'',format:''},dayType:dayOf(today()),photos:[],driveLink:'',
     footfall:{morning:'',lunch:'',evening:'',dinner:''},mainFootfall:[],signage:'',obstruct:[],frontage:[],safety:'',visitNotes:'',
     generators:[],gen:{},directNearby:'',indirectTypes:[],competitors:[{}],changes:'',risks:{has:'',details:''},ownStoreKm:'',
     waterlog:'',waterlogNote:'',facadeW:'',facadeH:'',floors:[],backDoor:'',bldg:'',ductFan:'',ductFanNote:'',compCount:'',elecOk:'',elecExt:'',waterOk:'',rentAsk:'',deposit:'',agreeYears:'',tenants:[{}],lastTenant:'',lastStay:'',whyLeft:'',vacant:'',
@@ -241,7 +247,7 @@ const pick=(o,ks)=>Object.fromEntries(ks.filter(k=>o[k]!==undefined).map(k=>[k,o
 function switchMode(m){S=Object.assign(blank(),{mode:m,meta:{...blank().meta,bd:S.meta.bd}});saveDraft();render();}
 function pickSite(id){
   const s=sites.find(x=>x.id===id), b=blank();
-  S=Object.assign(b,{mode:'Repeat visit',siteId:s?id:'',meta:{...b.meta,bd:S.meta.bd,date:S.meta.date,time:S.meta.time,site:s?.meta?.site||'',address:s?.meta?.address||'',location:s?.meta?.location||'',maps:s?.meta?.maps||''},dayType:S.dayType},s?pick(s,SITE_KEYS):{});
+  S=Object.assign(b,{mode:'Repeat visit',siteId:s?id:'',meta:{...b.meta,bd:S.meta.bd,date:S.meta.date,time:S.meta.time,site:s?.meta?.site||'',address:s?.meta?.address||'',location:s?.meta?.location||'',maps:s?.meta?.maps||'',city:s?.meta?.city||'',format:s?.meta?.format||''},dayType:S.dayType},s?pick(s,SITE_KEYS):{});
   saveDraft();render();
 }
 
@@ -266,8 +272,9 @@ function render(){
     <div class="q"><span class="ql">New site or repeat visit?</span>${chips('mode',MODES,false)}</div>
     ${rep?`<div class="q"><label for="f-siteId">Site *</label>${siteSel}</div>`
       :`${fl('Site name *','meta.site',{ph:'e.g. Prahlad Nagar corner unit'})}${fl('Site address *','meta.address',{ph:'Building, street, area'})}${fl('Site location / area *','meta.location',{ph:'Locality, city'})}
+        <div class="grid2">${fl('City *','meta.city',{t:'sel',opts:CITIES})}${fl('Format *','meta.format',{t:'sel',opts:FORMATS})}</div>
         <div class="q"><label for="f-meta-maps">Google Maps pin * <span class="hint">paste the share link</span></label>${input('meta.maps',{t:'url',ph:'https://maps.app.goo.gl/…'})}</div>`}
-    ${rep&&S.siteId?`<label class="chip"><input type="checkbox" id="f-edit"${S.editSite?' checked':''}><span>Also update site details</span></label>${S.editSite?`${fl('Site address *','meta.address')}${fl('Site location / area *','meta.location')}<div class="q"><label for="f-meta-maps">Google Maps pin *</label>${input('meta.maps',{t:'url',ph:'https://maps.app.goo.gl/…'})}</div>`:''}`:''}
+    ${rep&&S.siteId?`<label class="chip"><input type="checkbox" id="f-edit"${S.editSite?' checked':''}><span>Also update site details</span></label>${S.editSite?`${fl('Site address *','meta.address')}${fl('Site location / area *','meta.location')}<div class="grid2">${fl('City *','meta.city',{t:'sel',opts:CITIES})}${fl('Format *','meta.format',{t:'sel',opts:FORMATS})}</div><div class="q"><label for="f-meta-maps">Google Maps pin *</label>${input('meta.maps',{t:'url',ph:'https://maps.app.goo.gl/…'})}</div>`:''}`:''}
     ${ready?`<div class="grid2">${fl('BD executive *','meta.bd')}${fl('Visit date *','meta.date',{t:'date'})}${fl('Visit time','meta.time',{t:'time'})}</div>
     <div class="q"><span class="ql">Visit day *</span>${chips('dayType',DAYS,false)}<span class="hint">Set from the date. Change if needed.</span></div>
     ${photoBlock}`:'<div class="empty-note">Pick the site you are revisiting.</div>'}
@@ -348,7 +355,7 @@ function detailHTML(s,vs){
   return `<div class="detail">
     <div><h4>Weekday vs weekend <span class="hint">${vs.length} visit${vs.length===1?'':'s'}, latest of each type</span></h4>${cmp}</div>
     ${media}
-    <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Electricity 35 kW+',E(s.elecOk)],['Electricity extendable',E(s.elecExt)],['Water 2,000 L+',E(s.waterOk)],['Asking rent / month',s.rentAsk===''||s.rentAsk==null?'–':fmtINR(s.rentAsk)],['Security deposit',s.deposit===''||s.deposit==null?'–':fmtINR(s.deposit)],['Agreement period (years)',E(s.agreeYears)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
+    <div><h4>Property and access</h4>${dl([['Address',E(s.meta?.address)],['Site location',E(s.meta?.location)],['City',E(s.meta?.city)],['Format',E(s.meta?.format)],['Maps pin',s.meta?.maps?`<a href="${esc(s.meta.maps)}" target="_blank" rel="noopener">Open in Maps</a>`:'–'],['Building',E(s.bldg)],['Floors',E(s.floors)],['Electricity 35 kW+',E(s.elecOk)],['Electricity extendable',E(s.elecExt)],['Water 2,000 L+',E(s.waterOk)],['Asking rent / month',s.rentAsk===''||s.rentAsk==null?'–':fmtINR(s.rentAsk)],['Security deposit',s.deposit===''||s.deposit==null?'–':fmtINR(s.deposit)],['Agreement period (years)',E(s.agreeYears)],['Facade W × H (ft)',`${E(s.facadeW)} × ${E(s.facadeH)}`],['HVAC / exhaust / fresh air installation feasible?',E(s.ductFan)],['HVAC / exhaust / fresh air notes',E(s.ductFanNote)],['Back door',E(s.backDoor)],['Signage visibility',E(s.signage)],['Blocking facade',E(s.obstruct)],['Waterlogging',E(s.waterlog)+(s.waterlogNote?' – '+esc(s.waterlogNote):'')],['Seats indoor / outdoor',`${E(s.seatIn)} / ${E(s.seatOut)}`],['Outdoor permitted',E(s.outdoorOk)],['Median',E(s.median)],['Nearest U-turn (m)',E(s.uturn)],['Parking 2W / car / slots',`${E(s.parkTw)} / ${E(s.parkCar)} / ${E(s.parkSlots)}`],['Last tenant',E(s.lastTenant)],['Stayed (months)',E(s.lastStay)],['Why they left',E(s.whyLeft)],['Vacant (months)',E(s.vacant)]])}
     ${tens.length?tbl(TEN_FIELDS.map(f=>f.l),tens.map(r=>[E(r.name),E(r.area),fmtINR(r.rent),E(r.source)])):''}</div>
     ${gens}
     <div><h4>Competition</h4>${dl([['Competitors nearby (total)',E(s.compCount)],['Direct competitors nearby',E(s.directNearby)],['Indirect nearby',E(s.indirectTypes)],['Openings / closures',E(s.changes)]])}
@@ -383,7 +390,7 @@ function renderList(){
 const SK=[['Building','bldg'],['Floors','floors'],['Electricity 35 kW+','elecOk'],['Electricity extendable','elecExt'],['Water 2000 L+','waterOk'],['Asking rent per month','rentAsk'],['Security deposit','deposit'],['Agreement period years','agreeYears'],['Facade width ft','facadeW'],['Facade height ft','facadeH'],['HVAC / exhaust / fresh air installation feasible?','ductFan'],['HVAC / exhaust / fresh air notes','ductFanNote'],['Back door','backDoor'],['Signage visibility','signage'],['Blocking facade','obstruct'],['Waterlogging','waterlog'],['Waterlogging source','waterlogNote'],['Seats indoor','seatIn'],['Seats outdoor','seatOut'],['Outdoor seating permitted','outdoorOk'],['Median','median'],['U-turn m','uturn'],['Parking 2W','parkTw'],['Parking car','parkCar'],['Parking slots','parkSlots'],['Last tenant','lastTenant'],['Stay months','lastStay'],['Why left','whyLeft'],['Vacant months','vacant'],['Direct competition nearby','directNearby'],['Total competitors nearby','compCount'],['Indirect nearby','indirectTypes'],['Openings/closures','changes'],['Own store km','ownStoreKm']];
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"', j=v=>Array.isArray(v)?v.join(', '):v;
-  const C=[['Site',s=>s.meta?.site],['Site ID',s=>s.id],['Address',s=>s.meta?.address],['Site location',s=>s.meta?.location],['Maps pin',s=>s.meta?.maps],
+  const C=[['Site',s=>s.meta?.site],['Site ID',s=>s.id],['Address',s=>s.meta?.address],['Site location',s=>s.meta?.location],['City',s=>s.meta?.city],['Format',s=>s.meta?.format],['Maps pin',s=>s.meta?.maps],
    ['Visit date',(s,v)=>v.date],['Visit time',(s,v)=>v.time],['Day type',(s,v)=>v.dayType],['BD executive',(s,v)=>v.bd],
    ['Footfall morning',(s,v)=>v.footfall?.morning],['Footfall lunch',(s,v)=>v.footfall?.lunch],['Footfall evening',(s,v)=>v.footfall?.evening],['Footfall dinner',(s,v)=>v.footfall?.dinner],
    ['Main footfall',(s,v)=>j(v.mainFootfall)],['Frontage issues',(s,v)=>j(v.frontage)],
@@ -586,6 +593,8 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
   if(!rep&&!S.meta.site.trim())miss.push('site name');
   if((!rep||S.editSite)&&!S.meta.address.trim())miss.push('site address');
   if((!rep||S.editSite)&&!S.meta.location.trim())miss.push('site location / area');
+  if((!rep||S.editSite)&&!S.meta.city)miss.push('city');
+  if((!rep||S.editSite)&&!S.meta.format)miss.push('format (dine-in or cloud kitchen)');
   if(ready&&!String(S.meta.maps||'').trim())miss.push('Google Maps pin');
   if(!S.meta.date)miss.push('visit date');
   if(!S.dayType)miss.push('visit day');
@@ -613,7 +622,7 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Submitting…';
   try{
     const c=cleaned(),day=S.dayType;
-    const site={...pick(c,SITE_KEYS),meta:{site:c.meta.site,address:c.meta.address,location:c.meta.location,maps:c.meta.maps}};
+    const site={...pick(c,SITE_KEYS),meta:{site:c.meta.site,address:c.meta.address,location:c.meta.location,city:c.meta.city,format:c.meta.format,maps:c.meta.maps}};
     const visit={bd:c.meta.bd,date:c.meta.date,time:c.meta.time,...pick(c,VISIT_KEYS)};
     await api('submit',{rep,siteId:S.siteId,editSite:S.editSite,site,visit});
     S=blank();saveDraft();render();scrollTo(0,0);
